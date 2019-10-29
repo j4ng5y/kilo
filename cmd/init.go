@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -10,7 +10,35 @@ import (
 	"path"
 )
 
-func initConfig() error {
+const (
+	etcConfigPath = "/etc/kilo"
+	varConfigPath = "/var/lib/kilo"
+)
+
+var (
+	configFile    string
+	initializeCmd = &cobra.Command{
+		Use:     "init",
+		Short:   "initialize kilo",
+		Long:    "",
+		Example: "",
+		Run:     initializeFunc,
+	}
+)
+
+func init() {
+	kiloCmd.AddCommand(initializeCmd)
+	initializeCmd.Flags().StringVarP(&configFile, "config-file", "f", "", "The config file to use")
+}
+
+func initializeFunc(ccmd *cobra.Command, args []string) {
+	if err := initializeConfig(); err != nil {
+		klog.Fatal(err.Error())
+	}
+	go state.InitState(viper.GetInt("kilo.state.spec.etcd.startup_timeout"))
+}
+
+func initializeConfig() error {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 	} else {
@@ -30,11 +58,4 @@ func initConfig() error {
 		return fmt.Errorf("error reading in the configuration file, error: %w", err)
 	}
 	return nil
-}
-
-func initFunc(ccmd *cobra.Command, args []string) {
-	if err := initConfig(); err != nil {
-		klog.Fatal(err.Error())
-	}
-	go state.InitState(viper.GetInt("kilo.state.etcd.startup_timeout"))
 }

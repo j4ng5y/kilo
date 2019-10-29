@@ -18,7 +18,7 @@ func InitState(timeout int) {
 	select {
 	case <-e.Server.ReadyNotify():
 		klog.V(1).Info("etcd started")
-	case <-time.After(time.Duration(timeout)*time.Second):
+	case <-time.After(time.Duration(timeout) * time.Second):
 		e.Server.Stop()
 		klog.Errorf("etcd did not start within %d seconds", timeout)
 	}
